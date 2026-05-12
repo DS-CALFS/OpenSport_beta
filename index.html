@@ -1,11 +1,66 @@
-```react
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Trophy, 
-  Users, 
-  Settings, 
-  ChevronRight, 
-  Target, 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OpenSport</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .active-glow {
+      animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 5px rgba(132, 204, 22, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 20px rgba(132, 204, 22, 0.8);
+      }
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+const {
+  Trophy,
+  Users,
+  Settings,
+  ChevronRight,
+  Target,
   Award,
   Search,
   Globe,
@@ -15,380 +70,287 @@ import {
   Smartphone,
   Navigation,
   Heart,
-  LocateFixed,
-  ChevronDown
-} from 'lucide-react';
+  LocateFixed
+} = lucide;
 
 const App = () => {
-  // --- State ---
-  const [activeTab, setActiveTab] = useState('home');
-  const [lang, setLang] = useState('EN');
-  const [kcalBurned, setKcalBurned] = useState(24000);
-  const [isWorkingOut, setIsWorkingOut] = useState(false);
-  const [workoutSessionKcal, setWorkoutSessionKcal] = useState(0);
-  const [activeTeam, setActiveTeam] = useState(null);
-  const [drawerHeight, setDrawerHeight] = useState(400); // Dynamic height for the sliding drawer
-  const [showPermissions, setShowPermissions] = useState(true);
-  const [permissionsGranted, setPermissionsGranted] = useState(false);
 
-  // --- Constants ---
+  const [activeTab, setActiveTab] = React.useState('home');
+  const [lang, setLang] = React.useState('EN');
+  const [kcalBurned, setKcalBurned] = React.useState(24000);
+  const [isWorkingOut, setIsWorkingOut] = React.useState(false);
+  const [activeTeam, setActiveTeam] = React.useState(null);
+  const [drawerHeight, setDrawerHeight] = React.useState(400);
+  const [showPermissions, setShowPermissions] = React.useState(true);
+
   const KCAL_PER_POINT = 23.9;
-  const currentPoints = Math.floor((kcalBurned + workoutSessionKcal) / KCAL_PER_POINT);
+  const currentPoints = Math.floor(kcalBurned / KCAL_PER_POINT);
 
   const translations = {
     EN: {
-      home: "HOME", team: "TEAM UP", rank: "RANK", settings: "SETTINGS",
-      welcome: "Ready for a sweat?", points: "PTS", start: "START WORKOUT",
-      stop: "FINISH & SYNC", langBtn: "ENGLISH", nearby: "NEARBY TEAMS",
-      privacy: "PRIVACY", notifications: "NOTIFICATIONS",
-      guide: "APP GUIDE", signOut: "SIGN OUT ACCOUNT", join: "JOIN",
-      participants: "PARTICIPANTS", destination: "DESTINATION", leave: "LEAVE SESSION",
-      permTitle: "Allow Access", permSub: "OpenSport needs access to track your movement.",
-      permHealth: "Health Data", permMotion: "Motion Sensors", permGPS: "GPS Location",
-      allow: "ALLOW ACCESS", skip: "MAYBE LATER", me: "YOU", 
-      searchPlaceholder: "Search squads...", solo: "SOLO", teamUp: "TEAM"
+      home: "HOME",
+      team: "TEAM",
+      rank: "RANK",
+      settings: "SETTINGS",
+      welcome: "Ready for a sweat?",
+      points: "PTS",
+      start: "START WORKOUT",
+      stop: "FINISH & SYNC",
+      langBtn: "ENGLISH"
     },
+
     CH: {
-      home: "首頁", team: "組隊", rank: "排名", settings: "設定",
-      welcome: "準備好流汗了嗎？", points: "能量點數", start: "開始運動",
-      stop: "完成並同步", langBtn: "繁體中文", nearby: "附近的隊伍",
-      privacy: "隱私設定", notifications: "通知設定",
-      guide: "使用指南", signOut: "登出帳號", join: "加入",
-      participants: "參與者", destination: "目的地", leave: "離開小組",
-      permTitle: "允許存取", permSub: "OpenSport 需要存取權限以追蹤您的運動。",
-      permHealth: "健康數據", permMotion: "動作感應", permGPS: "GPS 定位",
-      allow: "允許存取", skip: "稍後再說", me: "你", 
-      searchPlaceholder: "搜尋隊伍...", solo: "個人", teamUp: "團隊"
+      home: "首頁",
+      team: "組隊",
+      rank: "排名",
+      settings: "設定",
+      welcome: "準備好流汗了嗎？",
+      points: "能量點數",
+      start: "開始運動",
+      stop: "完成並同步",
+      langBtn: "繁體中文"
     }
   };
 
   const t = translations[lang];
 
-  // --- UI Handlers ---
-  const toggleDrawer = () => {
-    setDrawerHeight(prev => prev > 100 ? 80 : 400);
-  };
-
-  const handleJoinTeam = (team) => {
-    setActiveTeam(team);
-    setDrawerHeight(400); // Ensure drawer is open when joining
-  };
-
-  // --- Components ---
-  const RealMap = () => (
-    <div className="absolute inset-0 bg-[#f8f9fa] overflow-hidden">
-      <svg className="w-full h-full" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice">
-        {/* Map Grid / Blocks */}
-        <rect x="0" y="0" width="400" height="600" fill="#f1f3f4" />
-        <rect x="50" y="50" width="100" height="80" fill="#e8eaed" rx="8" />
-        <rect x="250" y="100" width="120" height="150" fill="#e8eaed" rx="8" />
-        <rect x="30" y="250" width="150" height="120" fill="#e8eaed" rx="8" />
-        <rect x="220" y="400" width="140" height="100" fill="#e8eaed" rx="8" />
-        
-        {/* Roads */}
-        <path d="M 0 500 L 150 450 L 180 300 L 300 250 L 350 50" fill="none" stroke="white" strokeWidth="30" />
-        
-        {/* The Track Line */}
-        <path d="M 150 450 L 180 300 L 300 250 L 350 50" fill="none" stroke="#4285F4" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-lg" />
-        
-        {/* Start Point */}
-        <circle cx="150" cy="450" r="10" fill="white" stroke="#4285F4" strokeWidth="3" />
-        
-        {/* Participants Locations */}
-        {/* Me */}
-        <g transform="translate(180, 300)">
-          <circle r="14" fill="rgba(66, 133, 244, 0.2)" className="animate-pulse" />
-          <circle r="7" fill="#4285F4" stroke="white" strokeWidth="2" />
-        </g>
-        
-        {/* Teammate 1 */}
-        <g transform="translate(240, 275)">
-          <circle r="8" fill="#EA4335" stroke="white" strokeWidth="2" className="drop-shadow-md" />
-        </g>
-
-        {/* Teammate 2 */}
-        <g transform="translate(320, 180)">
-          <circle r="8" fill="#FBBC05" stroke="white" strokeWidth="2" className="drop-shadow-md" />
-        </g>
-        
-        {/* End Point / Flag */}
-        <g transform="translate(350, 50)">
-          <path d="M 0 0 L -8 -20 A 10 10 0 1 1 8 -20 Z" fill="#EA4335" stroke="white" strokeWidth="1" />
-          <circle r="3" fill="white" cy="-20" />
-        </g>
-      </svg>
-      
-      {/* Map Controls */}
-      <div className="absolute top-24 right-4 flex flex-col gap-2">
-        <button className="w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-slate-600 border border-gray-100 active:scale-95">
-          <LocateFixed size={20} />
-        </button>
-      </div>
-    </div>
-  );
+  React.useEffect(() => {
+    lucide.createIcons();
+  }, [activeTab, lang, activeTeam]);
 
   return (
-    <div className="flex flex-col h-screen bg-white text-slate-900 max-w-md mx-auto shadow-2xl overflow-hidden font-sans relative select-none">
-      
-      {/* Global Permission Modal */}
+    <div className="flex flex-col h-screen bg-white text-slate-900 max-w-md mx-auto shadow-2xl overflow-hidden relative">
+
+      {/* Permission Modal */}
       {showPermissions && (
-        <div className="absolute inset-0 z-[200] bg-black/60 backdrop-blur-md flex items-end">
-          <div className="bg-white w-full rounded-t-[40px] p-8 animate-[slideUp_0.3s_ease-out]">
-            <div className="w-12 h-1.5 bg-gray-100 rounded-full mx-auto mb-8" />
-            <h2 className="text-2xl font-black italic mb-2 uppercase tracking-tighter">{t.permTitle}</h2>
-            <p className="text-sm text-gray-500 mb-8 font-medium">{t.permSub}</p>
-            <div className="space-y-5 mb-10">
-              {[ { icon: Heart, label: t.permHealth, color: 'text-rose-500' },
-                 { icon: Smartphone, label: t.permMotion, color: 'text-blue-500' },
-                 { icon: Navigation, label: t.permGPS, color: 'text-lime-600' } ].map((p, i) => (
-                <div key={i} className="flex items-center gap-5">
-                  <div className="p-2 bg-slate-50 rounded-xl"><p.icon size={22} className={p.color} /></div>
-                  <span className="text-sm font-black uppercase text-slate-700 tracking-tight">{p.label}</span>
-                </div>
-              ))}
-            </div>
-            <button 
-              onClick={() => { setPermissionsGranted(true); setShowPermissions(false); }} 
-              className="w-full py-5 bg-black text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-black/20 active:scale-95 transition-transform"
+        <div className="absolute inset-0 z-50 bg-black/60 flex items-end">
+          <div
+            className="bg-white w-full rounded-t-[40px] p-8"
+            style={{ animation: "slideUp 0.3s ease-out" }}
+          >
+
+            <div className="w-12 h-1.5 bg-gray-100 rounded-full mx-auto mb-8"></div>
+
+            <h2 className="text-2xl font-black italic mb-2 uppercase">
+              Allow Access
+            </h2>
+
+            <p className="text-sm text-gray-500 mb-8">
+              OpenSport needs access to track movement.
+            </p>
+
+            <button
+              onClick={() => setShowPermissions(false)}
+              className="w-full py-5 bg-black text-white rounded-2xl font-black"
             >
-              {t.allow}
+              ALLOW ACCESS
             </button>
           </div>
         </div>
       )}
 
-      {/* Main App Header */}
-      <header className="px-6 pt-10 pb-4 bg-white z-[100]">
+      {/* Header */}
+      <header className="px-6 pt-10 pb-4 bg-white z-10">
+
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-3xl font-black italic tracking-tighter flex items-center gap-1">
+
+          <h1 className="text-3xl font-black italic tracking-tighter">
             OPEN<span className="text-lime-500">SPORT</span>
-            <div className="w-2 h-2 rounded-full bg-lime-500 active-glow ml-1" />
           </h1>
-          <div className="flex bg-lime-400/10 px-4 py-2 rounded-full items-center gap-2 border border-lime-200 shadow-sm">
-            <Zap size={16} className="text-lime-600 fill-lime-500" />
-            <span className="text-sm font-black text-lime-700 tracking-tighter">{currentPoints} <span className="text-[10px] opacity-40 uppercase">{t.points}</span></span>
+
+          <div className="flex bg-lime-400/10 px-4 py-2 rounded-full items-center gap-2">
+
+            <i data-lucide="zap" className="text-lime-600"></i>
+
+            <span className="text-sm font-black text-lime-700">
+              {currentPoints} {t.points}
+            </span>
+
           </div>
         </div>
+
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-          <input 
-            type="text" 
-            placeholder={t.searchPlaceholder} 
-            className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-lime-400/50 transition-all" 
+
+          <i
+            data-lucide="search"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5"
+          ></i>
+
+          <input
+            type="text"
+            placeholder="Search..."
+            className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3.5 pl-12 pr-4 text-sm"
           />
         </div>
       </header>
 
-      {/* Dynamic Content Area */}
-      <main className="flex-1 relative overflow-hidden">
-        
+      {/* Main */}
+      <main className="flex-1 overflow-y-auto p-6 pb-24">
+
         {activeTab === 'home' && (
-          <div className="p-6 space-y-6 h-full overflow-y-auto pb-24">
-            <div className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-lime-400/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:scale-150 transition-transform duration-1000" />
-              <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">{t.welcome}</p>
-              <h2 className="text-5xl font-black italic mb-10 tracking-tighter">
-                {Math.floor(kcalBurned + workoutSessionKcal).toLocaleString()} <span className="text-xs opacity-20 not-italic uppercase">kcal</span>
+          <div className="space-y-6">
+
+            <div className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl">
+
+              <p className="text-xs text-gray-400 uppercase mb-2">
+                {t.welcome}
+              </p>
+
+              <h2 className="text-5xl font-black italic mb-10">
+                {kcalBurned.toLocaleString()}
+                <span className="text-xs ml-2 opacity-30">kcal</span>
               </h2>
-              <button 
-                onClick={() => setIsWorkingOut(!isWorkingOut)} 
-                className={`w-full py-5 rounded-[24px] font-black text-sm tracking-widest shadow-xl transition-all active:scale-95 ${
-                  isWorkingOut ? 'bg-white border-2 border-lime-500 text-lime-500 active-glow' : 'bg-black text-white'
+
+              <button
+                onClick={() => setIsWorkingOut(!isWorkingOut)}
+                className={`w-full py-5 rounded-[24px] font-black transition-all ${
+                  isWorkingOut
+                    ? 'bg-white border-2 border-lime-500 text-lime-500 active-glow'
+                    : 'bg-black text-white'
                 }`}
               >
                 {isWorkingOut ? t.stop : t.start}
               </button>
             </div>
+
             <div className="grid grid-cols-2 gap-5">
-              <div className="bg-gray-50 p-8 rounded-[32px] flex flex-col items-center gap-3 border border-transparent hover:border-lime-200 transition-colors">
-                <Target className="text-lime-500" size={28} />
-                <span className="text-xs font-black uppercase tracking-widest text-slate-800">{t.solo}</span>
+
+              <div className="bg-gray-50 p-8 rounded-[32px] flex flex-col items-center gap-3">
+                <i data-lucide="target" className="text-lime-500 w-8 h-8"></i>
+                <span className="text-xs font-black uppercase">
+                  SOLO
+                </span>
               </div>
-              <div 
-                className="bg-gray-50 p-8 rounded-[32px] flex flex-col items-center gap-3 border border-transparent hover:border-lime-200 transition-colors cursor-pointer" 
+
+              <div
                 onClick={() => setActiveTab('team')}
+                className="bg-gray-50 p-8 rounded-[32px] flex flex-col items-center gap-3 cursor-pointer"
               >
-                <Users className="text-lime-500" size={28} />
-                <span className="text-xs font-black uppercase tracking-widest text-slate-800">{t.teamUp}</span>
+                <i data-lucide="users" className="text-lime-500 w-8 h-8"></i>
+
+                <span className="text-xs font-black uppercase">
+                  TEAM
+                </span>
               </div>
+
             </div>
           </div>
         )}
 
-        {activeTab === 'team' && !activeTeam && (
-          <div className="p-6 space-y-5 h-full overflow-y-auto pb-24">
-            <h2 className="text-2xl font-black italic mb-6 uppercase tracking-tighter">附近的隊伍</h2>
-            {[ {id:1, title:"KOWLOON RUN", m:12, t:"18:00"}, {id:2, title:"SOHO HIIT", m:5, t:"19:30"}, {id:3, title:"TKO YOGA", m:8, t:"07:15"} ].map(team => (
-              <div key={team.id} className="bg-white p-6 rounded-[32px] border border-gray-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 bg-lime-50 rounded-2xl flex items-center justify-center font-black text-lime-600 italic">#{team.id}</div>
-                  <div>
-                    <h3 className="font-black text-sm uppercase tracking-tight">{team.title}</h3>
-                    <p className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">{team.m} MEMBERS • {team.t}</p>
-                  </div>
+        {activeTab === 'team' && (
+          <div className="space-y-5">
+
+            <h2 className="text-2xl font-black italic">
+              Nearby Teams
+            </h2>
+
+            {[1,2,3].map(id => (
+              <div
+                key={id}
+                className="bg-white p-6 rounded-[32px] border border-gray-100 flex justify-between items-center shadow-sm"
+              >
+
+                <div>
+                  <h3 className="font-black">TEAM #{id}</h3>
+                  <p className="text-xs text-gray-400">
+                    ACTIVE SESSION
+                  </p>
                 </div>
-                <button onClick={() => handleJoinTeam(team)} className="bg-black text-white px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-90 shadow-lg shadow-black/10">
-                  {t.join}
+
+                <button
+                  className="bg-black text-white px-6 py-2 rounded-2xl text-xs font-black"
+                >
+                  JOIN
                 </button>
+
               </div>
             ))}
-          </div>
-        )}
-
-        {activeTeam && (
-          <div className="absolute inset-0 z-50 bg-white flex flex-col overflow-hidden animate-[fadeIn_0.4s]">
-            {/* Map Background */}
-            <div className="absolute inset-0 z-0">
-               <RealMap />
-            </div>
-
-            {/* Back Button */}
-            <button 
-              onClick={() => setActiveTeam(null)} 
-              className="absolute top-6 left-6 w-12 h-12 bg-white rounded-full shadow-2xl flex items-center justify-center z-[100] active:scale-90 border border-gray-100"
-            >
-              <X size={20} strokeWidth={3} />
-            </button>
-
-            {/* Draggable Drawer */}
-            <div 
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[45px] shadow-[0_-20px_80px_rgba(0,0,0,0.15)] z-[110] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
-              style={{ height: `${drawerHeight}px` }}
-            >
-              {/* Handle */}
-              <div 
-                className="w-full pt-4 pb-6 flex flex-col items-center cursor-pointer" 
-                onClick={toggleDrawer}
-              >
-                <div className="w-14 h-1.5 bg-gray-100 rounded-full mb-4" />
-                {drawerHeight < 100 && <h3 className="text-xs font-black italic uppercase tracking-tighter opacity-40">{t.participants}</h3>}
-              </div>
-
-              {drawerHeight > 100 && (
-                <div className="px-8 pb-12 h-full overflow-y-auto">
-                  <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">{t.participants}</h3>
-                    <div className="bg-lime-100 text-lime-700 px-4 py-1.5 rounded-full text-[10px] font-black italic uppercase">
-                      {activeTeam.m} ACTIVE
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4 mb-8">
-                    <div className="p-5 bg-lime-50/50 rounded-[28px] flex items-center justify-between border border-lime-100">
-                       <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 rounded-2xl bg-white border-2 border-lime-400 p-1">
-                           <div className="w-full h-full bg-slate-100 rounded-lg flex items-center justify-center font-black text-[10px] text-lime-600">ME</div>
-                         </div>
-                         <div>
-                            <span className="font-black text-xs uppercase text-lime-700 flex items-center gap-2">
-                              {t.me} <div className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-ping" />
-                            </span>
-                            <p className="text-[10px] font-bold text-lime-600/40 uppercase tracking-widest">Tracking Live</p>
-                         </div>
-                       </div>
-                    </div>
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="p-5 bg-gray-50 rounded-[28px] flex items-center gap-4 border border-gray-100">
-                        <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center font-black text-[10px] text-slate-300">#{i}</div>
-                        <div>
-                          <span className="font-black text-xs uppercase text-slate-500">Athlete #{i + 140}</span>
-                          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Steady Pace</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <button onClick={() => setActiveTeam(null)} className="w-full py-5 bg-red-50 text-red-500 font-black text-[10px] uppercase tracking-[0.2em] rounded-3xl transition-colors hover:bg-red-100">
-                    {t.leave}
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         )}
 
         {activeTab === 'rank' && (
-          <div className="p-6 space-y-6 h-full overflow-y-auto pb-24">
-            <h2 className="text-2xl font-black italic mb-6 uppercase tracking-tighter">排名</h2>
-            <div className="bg-white rounded-[40px] border border-gray-100 overflow-hidden shadow-sm">
-               {[1,2,3,4,5].map(pos => (
-                 <div key={pos} className={`flex items-center gap-5 p-6 ${pos === 4 ? 'bg-lime-50/50' : 'border-b border-gray-50'}`}>
-                    <div className={`w-8 font-black italic text-xl ${pos < 4 ? 'text-lime-500' : 'text-gray-200'}`}>0{pos}</div>
-                    <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-[10px] font-black text-white">USER</div>
-                    <div className="flex-1">
-                      <p className="text-[11px] font-black uppercase text-slate-800 tracking-tight">{pos === 4 ? t.me : `ATHLETE_PRO_${pos}`}</p>
-                      <div className="w-full bg-gray-100 h-1 rounded-full mt-2 overflow-hidden">
-                        <div className="bg-lime-400 h-full rounded-full shadow-[0_0_8px_rgba(163,230,53,0.8)]" style={{ width: `${100 - pos*12}%` }} />
-                      </div>
-                    </div>
-                    <div className="text-right font-black italic text-sm text-slate-900">{1000 - pos*42} <span className="text-[8px] opacity-30 not-italic uppercase">Pts</span></div>
-                 </div>
-               ))}
-            </div>
+          <div className="space-y-5">
+
+            <h2 className="text-2xl font-black italic">
+              Rankings
+            </h2>
+
+            {[1,2,3,4,5].map(pos => (
+              <div
+                key={pos}
+                className="bg-gray-50 rounded-2xl p-5 flex justify-between"
+              >
+                <span className="font-black">#{pos}</span>
+                <span>{1000 - pos * 50} pts</span>
+              </div>
+            ))}
+
           </div>
         )}
 
         {activeTab === 'settings' && (
-          <div className="p-6 space-y-5 h-full overflow-y-auto pb-24">
-            <h2 className="text-2xl font-black italic mb-8 uppercase tracking-tighter">設定</h2>
-            
-            {/* Language Toggle */}
-            <div 
-              className="bg-gray-50 p-6 rounded-[32px] flex items-center justify-between cursor-pointer border-2 border-transparent hover:border-lime-400 transition-all active:scale-95" 
-              onClick={() => setLang(l => l === 'EN' ? 'CH' : 'EN')}
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white rounded-2xl shadow-sm"><Globe size={22} className="text-lime-500" /></div>
-                <span className="font-black text-sm uppercase tracking-tight text-slate-800">{lang === 'EN' ? 'Language' : '語言'}</span>
-              </div>
-              <div className="bg-black text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-black/20">{t.langBtn}</div>
-            </div>
+          <div className="space-y-5">
 
-            {[ { label: t.privacy, icon: Settings }, { label: t.notifications, icon: Activity }, { label: t.guide, icon: Target } ].map((item, idx) => (
-              <div key={idx} className="bg-gray-50 p-6 rounded-[32px] flex items-center justify-between group cursor-pointer border border-transparent hover:border-slate-200 transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:shadow-md transition-all"><item.icon size={22} className="text-slate-400" /></div>
-                  <span className="font-black text-sm uppercase tracking-tight text-slate-700">{item.label}</span>
-                </div>
-                <ChevronRight size={20} className="text-gray-300 group-hover:translate-x-1 transition-transform" />
-              </div>
-            ))}
-            
-            <button className="w-full py-5 mt-10 bg-red-50 text-red-500 font-black text-[10px] uppercase tracking-[0.3em] rounded-3xl active:scale-95 transition-all">
-              {t.signOut}
+            <h2 className="text-2xl font-black italic">
+              Settings
+            </h2>
+
+            <button
+              onClick={() => setLang(lang === 'EN' ? 'CH' : 'EN')}
+              className="w-full bg-gray-50 rounded-3xl p-6 flex justify-between items-center"
+            >
+              <span className="font-black">
+                Language
+              </span>
+
+              <span className="bg-black text-white px-4 py-2 rounded-2xl text-xs">
+                {t.langBtn}
+              </span>
             </button>
+
           </div>
         )}
+
       </main>
 
-      {/* Persistent Bottom Nav */}
-      <nav className="bg-white/95 backdrop-blur-2xl border-t border-gray-100 flex justify-around items-center px-6 py-5 sticky bottom-0 z-[150] shadow-[0_-15px_40px_rgba(0,0,0,0.03)]">
-        {[ {id:'home', i:Target, l:t.home}, {id:'team', i:Users, l:t.team}, {id:'rank', i:Award, l:t.rank}, {id:'settings', i:Settings, l:t.settings} ].map(btn => (
-          <button 
-            key={btn.id} 
-            onClick={() => { setActiveTab(btn.id); setActiveTeam(null); }} 
-            className={`flex flex-col items-center gap-1.5 w-full transition-all duration-300 ${activeTab === btn.id ? 'text-lime-500 scale-110' : 'text-gray-300 hover:text-slate-400'}`}
+      {/* Bottom Nav */}
+      <nav className="bg-white border-t border-gray-100 flex justify-around items-center px-6 py-5 sticky bottom-0">
+
+        {[
+          {id:'home', icon:'target', label:t.home},
+          {id:'team', icon:'users', label:t.team},
+          {id:'rank', icon:'award', label:t.rank},
+          {id:'settings', icon:'settings', label:t.settings}
+        ].map(btn => (
+
+          <button
+            key={btn.id}
+            onClick={() => setActiveTab(btn.id)}
+            className={`flex flex-col items-center gap-1 ${
+              activeTab === btn.id
+                ? 'text-lime-500'
+                : 'text-gray-300'
+            }`}
           >
-            <btn.i size={24} strokeWidth={activeTab === btn.id ? 3 : 2} />
-            <span className="text-[9px] font-black uppercase tracking-widest">{btn.l}</span>
+
+            <i data-lucide={btn.icon} className="w-6 h-6"></i>
+
+            <span className="text-[9px] font-black uppercase">
+              {btn.label}
+            </span>
+
           </button>
         ))}
+
       </nav>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .active-glow { animation: pulse-glow 2s infinite; }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 5px rgba(132, 204, 22, 0.4); }
-          50% { box-shadow: 0 0 20px rgba(132, 204, 22, 0.8); }
-        }
-        * { -webkit-tap-highlight-color: transparent; }
-      `}} />
     </div>
   );
 };
 
-export default App;
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 
-```
+</script>
+
+</body>
+</html>
